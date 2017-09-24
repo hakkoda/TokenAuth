@@ -14,6 +14,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Rewrite;
 using System.Net;
 using Swashbuckle.AspNetCore.Swagger;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authorization;
+using System.Text;
 
 namespace TokenAuth
 {
@@ -35,6 +39,28 @@ namespace TokenAuth
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
+
+            services.AddAuthentication(options =>
+            {
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                // options.Authority = "http://localhost:5000/";
+                options.Audience = "TestAudience";
+                options.RequireHttpsMetadata = false;   // for dev, not production
+
+                var keyByteArray = Encoding.ASCII.GetBytes("dfasdfasdfasdfasdafasdfasdfasdfasfasdf");
+                var signingKey = new SymmetricSecurityKey(keyByteArray);
+                options.TokenValidationParameters = new TokenValidationParameters()
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = signingKey,
+                    ValidateIssuer = true,
+                    ValidIssuer = "TestIssuer",
+                    ValidAudience = "TestAudience",
+                };
+            });
 
             services.AddMvc();
 
@@ -58,7 +84,7 @@ namespace TokenAuth
                     context.Database.Migrate();
                 }
             }
-                    
+
             // Setup rewrite rules to allow page refreshes to work with Angular
             app.UseRewriter(new RewriteOptions()
                 .AddIISUrlRewrite(env.ContentRootFileProvider, "web.config"));

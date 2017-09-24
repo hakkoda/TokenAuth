@@ -10,6 +10,9 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Security.Claims;
 using TokenAuth.Data;
+using System.IdentityModel.Tokens.Jwt;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace TokenAuth.Controllers
 {
@@ -19,17 +22,78 @@ namespace TokenAuth.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        // private readonly PasswordHasher<ApplicationUser> _passwordHasher;
         private readonly ILogger _logger;
 
         public AccountController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
+            // PasswordHasher<ApplicationUser> passwordHasher,
             ILoggerFactory loggerFactory)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            // _passwordHasher = passwordHasher;
             _logger = loggerFactory.CreateLogger<AccountController>();
         }
+
+        /******************************* start jwt stuff... *******************************/
+
+        [HttpPost("token")]
+        public async Task<IActionResult> Token([FromBody] LoginModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
+
+            var user = await _userManager.FindByNameAsync(model.Email);
+
+            // if (user == null || _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, model.Password) != PasswordVerificationResult.Success)
+            // {
+            //     return BadRequest();
+            // }
+
+            var token = await GetJwtSecurityToken(user);
+
+            return Ok(new
+            {
+                token = new JwtSecurityTokenHandler().WriteToken(token),
+                expiration = token.ValidTo
+            });
+        }
+
+        private async Task<JwtSecurityToken> GetJwtSecurityToken(ApplicationUser user)
+        {
+            var userClaims = await _userManager.GetClaimsAsync(user);
+
+            var keyByteArray = Encoding.ASCII.GetBytes("dfasdfasdfasdfasdafasdfasdfasdfasfasdf");
+            var signingKey = new SymmetricSecurityKey(keyByteArray);
+            return new JwtSecurityToken(
+                // issuer: _appConfiguration.Value.SiteUrl,
+                // audience: _appConfiguration.Value.SiteUrl,
+                // issuer: "http://localhost:5000",
+                // audience: "http://localhost:5000",
+                issuer: "TestIssuer",
+                audience: "TestAudience",
+                claims: GetTokenClaims(user).Union(userClaims),
+                expires: DateTime.UtcNow.AddMinutes(10),
+                // signingCredentials: new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_appConfiguration.Value.Key)), SecurityAlgorithms.HmacSha256)
+                // signingCredentials: new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes("abcasdfasdfasdfasdfasdasfasdfasdfasdfasdfasdfasdfasdfasdfsdafasdfasdfasdfasdfasdfasdfasdfasdfasd")), SecurityAlgorithms.HmacSha256)
+                signingCredentials: new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256)
+            );
+        }
+
+        private static IEnumerable<Claim> GetTokenClaims(ApplicationUser user)
+        {
+            return new List<Claim>
+            {
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim(JwtRegisteredClaimNames.Sub, user.UserName)
+            };
+        }
+
+        /******************************* end jwt stuff... *******************************/
 
         // TODO: move UserModel
         public class UserModel
