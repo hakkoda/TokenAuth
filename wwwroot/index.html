@@ -1,0 +1,50 @@
+<html ng-app="myApp">
+<head>
+    <title>TokenAuth App</title>
+    <link rel="stylesheet" href="/css/w3.css">
+    <link rel="stylesheet" href="/css/w3-theme.css">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <base href="/">
+</head>
+<body ng-controller="AccountController as account">
+    <div class="w3-container">
+        <h1>TokenAuth App</h1>
+        <div>
+          <a href="/">Home</a> / <a href="/about">About</a> / <a href="/secret">Secret</a> /
+          <a href="/login" ng-show="!account.isLoggedIn()">Login</a>
+          <a href="#" ng-click="account.logout()" ng-show="account.isLoggedIn()">Logout</a>
+          <div ng-show="account.isLoggedIn()">
+               [{{account.getUserName()}}]
+           </div> 
+        </div>
+        <hr />
+
+        <ui-view></ui-view>
+
+    </div>
+
+    <!-- Library Files -->
+    <script src="/libs/angular.min.js"></script>
+    <script src="/libs/angular-resource.min.js"></script>
+    <script src="/libs/angular-animate.min.js"></script>
+    <script src="/libs/angular-touch.min.js"></script>
+    <script src="/libs/angular-ui-router.min.js"></script>
+
+    <!-- controllers -->
+    <script src="/ngApp/controllers/aboutController.js"></script>
+    <script src="/ngApp/controllers/accountController.js"></script>
+    <script src="/ngApp/controllers/confirmEmailController.js"></script>
+    <script src="/ngApp/controllers/externalRegisterController.js"></script>
+    <script src="/ngApp/controllers/homeController.js"></script>
+    <script src="/ngApp/controllers/loginController.js"></script>
+    <script src="/ngApp/controllers/registerController.js"></script>
+    <script src="/ngApp/controllers/secretController.js"></script>
+
+    <!-- services -->
+    <script src="/ngApp/services/accountService.js"></script>
+
+    <script src="/ngApp/app.js"></script>
+
+</body>
+</html>
