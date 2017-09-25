@@ -62,6 +62,12 @@ namespace TokenAuth
                 };
             });
 
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AdminOnly", policy => policy.RequireClaim("Admin"));
+            });
+
             services.AddMvc();
 
             // Register the Swagger generator, defining one or more Swagger documents

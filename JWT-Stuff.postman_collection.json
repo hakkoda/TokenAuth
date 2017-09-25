@@ -1,0 +1,48 @@
+{
+	"variables": [],
+	"info": {
+		"name": "JWT-Stuff",
+		"_postman_id": "da2ad188-d1c0-bb9b-0003-9b0587205b3c",
+		"description": "",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "http://localhost:5000/api/values/1",
+			"request": {
+				"url": "http://localhost:5000/api/values/1",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI1MTEyMmZjYi03ZWM2LTQwZWMtYmFhOC0yYmQzNjAyZjE4OTQiLCJzdWIiOiJ0ZXN0QHRlc3QuY29tIiwiQWRtaW4iOiIiLCJleHAiOjE1MDYzNDY3NjUsImlzcyI6IlRlc3RJc3N1ZXIiLCJhdWQiOiJUZXN0QXVkaWVuY2UifQ.S4c1GxZGbCNutYHURz4dCNyVfWCJQFvVPnTnb26HH3Y",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:5000/api/account/token",
+			"request": {
+				"url": "http://localhost:5000/api/account/token",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"email\": \"test@test.com\",\n\t\"password\": \"Password1!\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		}
+	]
+}

@@ -12,7 +12,6 @@ namespace TokenAuth.Controllers
     {
         // GET api/values
         [HttpGet]
-        // [Authorize]
         [Authorize(AuthenticationSchemes = "Bearer")]
         public IEnumerable<string> Get()
         {
@@ -21,7 +20,7 @@ namespace TokenAuth.Controllers
 
         // GET api/values/5
         [HttpGet("{id}")]
-        [Authorize] 
+        [Authorize(AuthenticationSchemes = "Bearer", Policy = "AdminOnly")]
         public string Get(int id)
         {
             return "value";
