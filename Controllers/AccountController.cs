@@ -13,6 +13,7 @@ using TokenAuth.Data;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using TokenAuth.Services.Interfaces;
 
 namespace TokenAuth.Controllers
 {
@@ -23,17 +24,20 @@ namespace TokenAuth.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         // private readonly PasswordHasher<ApplicationUser> _passwordHasher;
+        private readonly IJwtService _jwtService;
         private readonly ILogger _logger;
 
         public AccountController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
+            IJwtService jwtService,
             // PasswordHasher<ApplicationUser> passwordHasher,
             ILoggerFactory loggerFactory)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             // _passwordHasher = passwordHasher;
+            _jwtService = jwtService;
             _logger = loggerFactory.CreateLogger<AccountController>();
         }
 
@@ -52,45 +56,15 @@ namespace TokenAuth.Controllers
             // if (user == null || _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, model.Password) != PasswordVerificationResult.Success)
             // {
             //     return BadRequest();
-            // }
+            // }w
 
-            var token = await GetJwtSecurityToken(user);
+            var token = await _jwtService.GetJwtSecurityToken(user);
 
             return Ok(new
             {
                 token = new JwtSecurityTokenHandler().WriteToken(token),
                 expiration = token.ValidTo
             });
-        }
-
-        private async Task<JwtSecurityToken> GetJwtSecurityToken(ApplicationUser user)
-        {
-            var userClaims = await _userManager.GetClaimsAsync(user);
-
-            var keyByteArray = Encoding.ASCII.GetBytes("dfasdfasdfasdfasdafasdfasdfasdfasfasdf");
-            var signingKey = new SymmetricSecurityKey(keyByteArray);
-            return new JwtSecurityToken(
-                // issuer: _appConfiguration.Value.SiteUrl,
-                // audience: _appConfiguration.Value.SiteUrl,
-                // issuer: "http://localhost:5000",
-                // audience: "http://localhost:5000",
-                issuer: "TestIssuer",
-                audience: "TestAudience",
-                claims: GetTokenClaims(user).Union(userClaims),
-                expires: DateTime.UtcNow.AddMinutes(10),
-                // signingCredentials: new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_appConfiguration.Value.Key)), SecurityAlgorithms.HmacSha256)
-                // signingCredentials: new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes("abcasdfasdfasdfasdfasdasfasdfasdfasdfasdfasdfasdfasdfasdfsdafasdfasdfasdfasdfasdfasdfasdfasdfasd")), SecurityAlgorithms.HmacSha256)
-                signingCredentials: new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256)
-            );
-        }
-
-        private static IEnumerable<Claim> GetTokenClaims(ApplicationUser user)
-        {
-            return new List<Claim>
-            {
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(JwtRegisteredClaimNames.Sub, user.UserName)
-            };
         }
 
         /******************************* end jwt stuff... *******************************/
@@ -101,18 +75,20 @@ namespace TokenAuth.Controllers
             public string UserName { get; set; }
 
             public Dictionary<string, string> Claims { get; set; }
+            public string Token { get; set; }
         }
 
-        private async Task<UserModel> GetUser(string userName)
+        protected async Task<UserModel> GetUser(string userName)
         {
             var user = await _userManager.FindByNameAsync(userName);
             var claims = await _userManager.GetClaimsAsync(user);
-            var vm = new UserModel
+            var token = await _jwtService.GetJwtSecurityToken(user);
+            return new UserModel
             {
                 UserName = user.UserName,
-                Claims = claims.ToDictionary(c => c.Type, c => c.Value)
+                Claims = claims.ToDictionary(c => c.Type, c => c.Value),
+                Token = new JwtSecurityTokenHandler().WriteToken(token)
             };
-            return vm;
         }
 
         // TODO: move LoginModel

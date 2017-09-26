@@ -1,4 +1,4 @@
-var myApp = angular.module("myApp", [ "ui.router", "ngResource" ]);
+var myApp = angular.module("myApp", [ "ui.router", "ngResource", "ngCookies" ]);
 
 myApp.controller("AboutController", AboutController);
 myApp.controller("AccountController", AccountController);

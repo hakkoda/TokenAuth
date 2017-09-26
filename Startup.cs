@@ -18,6 +18,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authorization;
 using System.Text;
+using TokenAuth.Services;
+using TokenAuth.Services.Interfaces;
 
 namespace TokenAuth
 {
@@ -47,21 +49,17 @@ namespace TokenAuth
             .AddJwtBearer(options =>
             {
                 // options.Authority = "http://localhost:5000/";
-                options.Audience = "TestAudience";
+                options.Audience = JwtService.Audience;
                 options.RequireHttpsMetadata = false;   // for dev, not production
-
-                var keyByteArray = Encoding.ASCII.GetBytes("dfasdfasdfasdfasdafasdfasdfasdfasfasdf");
-                var signingKey = new SymmetricSecurityKey(keyByteArray);
                 options.TokenValidationParameters = new TokenValidationParameters()
                 {
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = signingKey,
+                    IssuerSigningKey = JwtService.GetSecurityKey(),
                     ValidateIssuer = true,
-                    ValidIssuer = "TestIssuer",
-                    ValidAudience = "TestAudience",
+                    ValidIssuer = JwtService.Issuer,
+                    ValidAudience = JwtService.Audience,
                 };
             });
-
 
             services.AddAuthorization(options =>
             {
@@ -75,6 +73,8 @@ namespace TokenAuth
             {
                 c.SwaggerDoc("v1", new Info { Title = "My API", Version = "v1" });
             });
+
+            services.AddScoped<IJwtService, JwtService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

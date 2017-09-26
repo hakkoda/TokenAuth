@@ -1,8 +1,9 @@
 class AccountService {
-    constructor ($q, $http, $window) {
+    constructor ($q, $http, $window, $cookies) {
         this.q = $q;
         this.http = $http;
         this.window = $window;
+        this.cookies = $cookies;
         this.checkAuthentication();
     }
     // Store access token and claims in browser session storage
@@ -12,6 +13,10 @@ class AccountService {
 
         // store claims
         this.window.sessionStorage.setItem('claims', JSON.stringify(userInfo.claims));
+        
+        // Where to store tokens?
+        // https://stormpath.com/blog/where-to-store-your-jwts-cookies-vs-html5-web-storage
+        this.cookies.put('token', userInfo.token);
     }
 
     getUserName() {
@@ -21,6 +26,10 @@ class AccountService {
     getClaim(type) {
         var allClaims = JSON.parse(this.window.sessionStorage.getItem('claims'));
         return allClaims ? allClaims[type] : null;
+    }
+    
+    getToken() {
+        return this.cookies.get('token');
     }
 
     login(loginUser) {
@@ -52,6 +61,8 @@ class AccountService {
     logout() {
         // clear all of session storage (including claims)
         this.window.sessionStorage.clear();
+
+        this.cookies.remove("token");
 
         // logout on the server
         return this.http.post('/api/account/logout', null);
